@@ -13,6 +13,28 @@ final class OrderService
         private OrderEvents $events
     ) {
     }
+        public function __construct(private OrderEvents $eventos) {}
+    /**
+     * ❌ METODO MAL APLICADO: procesarPedidoCompleto()
+     *    Sintomas medibles:
+     *      - mas de 6 responsabilidades en un solo metodo
+     *      - 4 niveles de anidamiento
+     *      - imposible de probar sin base de datos ni servidor de mail
+     *      - imprime HTML desde la capa de servicio (rompe MVC)
+     */
+    public function procesarPedidoCompleto(
+        int $id,
+        string $paciente,
+        float $monto,
+        string $tipoPaciente,
+        string $tipoNotificacion,
+        string $destino
+    ): void {
+        // ---- 1. Validacion (deberia estar en su propio validador) ----
+        if (trim($paciente) === '') {
+            echo 'Falta el paciente<br>';   // ❌ la capa de servicio imprime HTML
+            return;
+        }
 
     /** @return array{order: Order, notification: string, events: list<string>} */
     public function procesarPedidoCompleto(
@@ -63,9 +85,7 @@ final class OrderService
         }
 
         // ---- 5. Avisos internos (deberia ser un Observer) ----
-        $eventos = new OrderEvents();
-        $eventos->pedidoCreado($order);
-
+                $this->eventos->pedidoCreado($order);
         // ---- 6. Reporte (deberia ser un Decorator) ----
         $generador = new ReportGenerator();
         echo $generador->generate("Pedido {$id}", true, true, false) . '<br>';
