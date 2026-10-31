@@ -58,14 +58,8 @@ final class OrderService
             return;
         }
 
-        // ---- 2. Calculo de precio (deberia ser una Strategy) ----
-        $total = $monto;
-
-        if ($tipoPaciente === 'obra_social') {
-            $total = $monto * 0.7;          // ❌ tercera copia del 0.7 en el proyecto
-        } elseif ($tipoPaciente === 'jubilado') {
-            $total = $monto * 0.5;
-        }
+                
+        $total = PriceCalculator::forPatientType($tipoPaciente)->calculate($monto);
 
         // ---- 3. Persistencia (deberia ser un Repository) ----
         // ❌ new adentro del metodo: no se puede reemplazar por un doble en pruebas

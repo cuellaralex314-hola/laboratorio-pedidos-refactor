@@ -13,8 +13,7 @@ class OrderController
         $monto    = (float) ($_GET['monto'] ?? 15000);
         $tipo     = $_GET['tipo'] ?? 'obra_social';
 
-        // ❌ 2. Regla de negocio dentro del controlador (deberia ser Strategy)
-        $total = $tipo === 'obra_social' ? $monto * 0.7 : $monto;
+                $total = PriceCalculator::forPatientType($tipo)->calculate($monto);
 
         // ❌ 3. SQL dentro del controlador (deberia ser Repository)
         $conexion = Connection::getInstance();
