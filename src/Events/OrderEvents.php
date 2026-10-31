@@ -18,6 +18,12 @@ final class EmailObserver implements OrderObserver
 final class SmsObserver implements OrderObserver
 {
     public function __construct(private SmsNotification $sms, private string $numero) {}
+        // ❌ llamadas directas y encadenadas
+        $email = new EmailNotification();
+        $email->enviarEmail('paciente@mail.com', 'Pedido creado', "Pedido {$order->id}");
+
+        $sms = new SmsNotification();
+        $sms->mandarSms('3704000000', "Pedido {$order->id} creado");
 
     public function update(Order $order): void
     {
