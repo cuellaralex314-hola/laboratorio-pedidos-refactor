@@ -33,7 +33,27 @@ class Order
 
     public function guardar(): void
     {
-        (new OrderRepository(Connection::obtener()))->save($this);
+        (new OrderRepository(Connection::getInstance()))->save($this);
+    }
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function getPatient(): string
+    {
+        return $this->patient;
+    }
+
+    public function getAmount(): float
+    {
+        return $this->amount;
+    }
+
+    public function getPatientType(): string
+    {
+        return $this->patientType;
     }
 }
 

@@ -11,7 +11,7 @@ final class EmailObserver implements OrderObserver
 
     public function update(Order $order): void
     {
-        $this->email->send($this->destino, 'Pedido creado', "Pedido {$order->id}");
+        $this->email->send("Pedido {$order->id} creado para {$this->destino}");
     }
 }
 
@@ -21,7 +21,7 @@ final class SmsObserver implements OrderObserver
 
     public function update(Order $order): void
     {
-        $this->sms->send($this->numero, "Pedido {$order->id} creado");
+        $this->sms->send("Pedido {$order->id} creado para {$this->numero}");
     }
 }
 
