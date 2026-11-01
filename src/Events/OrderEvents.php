@@ -11,23 +11,17 @@ final class EmailObserver implements OrderObserver
 
     public function update(Order $order): void
     {
-        $this->email->enviarEmail($this->destino, 'Pedido creado', "Pedido {$order->id}");
+        $this->email->send($this->destino, 'Pedido creado', "Pedido {$order->id}");
     }
 }
 
 final class SmsObserver implements OrderObserver
 {
     public function __construct(private SmsNotification $sms, private string $numero) {}
-        // ❌ llamadas directas y encadenadas
-        $email = new EmailNotification();
-        $email->enviarEmail('paciente@mail.com', 'Pedido creado', "Pedido {$order->id}");
-
-        $sms = new SmsNotification();
-        $sms->mandarSms('3704000000', "Pedido {$order->id} creado");
 
     public function update(Order $order): void
     {
-        $this->sms->mandarSms($this->numero, "Pedido {$order->id} creado");
+        $this->sms->send($this->numero, "Pedido {$order->id} creado");
     }
 }
 
@@ -61,5 +55,4 @@ final class OrderEvents   // el sujeto: conoce la interfaz, no las clases concre
         }
     }
 }
- 
  

@@ -7,26 +7,6 @@ class OrderController
     public function __construct(?OrderService $orderService = null)
     {
         $this->orderService = $orderService ?? new OrderService();
-        // ❌ 1. Entrada sin validar ni sanitizar
-        $id       = (int) ($_GET['id'] ?? 1);
-        $paciente = $_GET['paciente'] ?? 'Juan Perez';
-        $monto    = (float) ($_GET['monto'] ?? 15000);
-        $tipo     = $_GET['tipo'] ?? 'obra_social';
-
-                $total = PriceCalculator::forPatientType($tipo)->calculate($monto);
-
-        // ❌ 3. SQL dentro del controlador (deberia ser Repository)
-        $conexion = Connection::getInstance();
-        $conexion->ejecutar("INSERT INTO orders VALUES ({$id}, '{$paciente}', {$total})");
-
-        // ❌ 4. Notificacion resuelta otra vez con if (deberia ser Factory)
-        $notificador = new NotificationSender();
-        $notificador->enviar('email', 'paciente@mail.com', "Pedido {$id} creado");
-
-        // ❌ 5. HTML impreso desde el controlador (deberia ser una View)
-        echo "<h1>Pedido creado</h1>";
-        echo "<p>Paciente: {$paciente}</p>";       // ❌ ademas, sin escapar: XSS
-        echo "<p>Total: $ {$total}</p>";
     }
 
     public function create(): void

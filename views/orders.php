@@ -16,6 +16,9 @@ $pedidos  = [
         </tr>
     <?php endforeach; ?>
 </table>
+    <tr><th>ID</th><th>Paciente</th><th>Total</th></tr>
+
+    <?php foreach ($pedidos as $pedido): ?>
             <td><?= $pedido['id'] ?></td>
 
             <td><?= $pedido['paciente'] ?></td>

@@ -50,9 +50,6 @@ class OrderRepository
 
         $this->connection->ejecutar(
             "INSERT INTO orders (id, patient, amount) VALUES ({$order->id}, '{$patient}', {$amount})"
-        $conexion = Connection::getInstance();
-        $conexion->ejecutar(
-            "INSERT INTO orders (id, patient, amount) VALUES ({$this->id}, '{$this->patient}', {$this->amount})"
         );
     }
 }
