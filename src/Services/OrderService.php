@@ -67,13 +67,13 @@ class OrderService
         // ---- 4. Notificacion (deberia ser una Factory) ----
         // ❌ MISMO if que ya existe en NotificationSender::enviar()
         if ($tipoNotificacion === 'email') {
-            $email = new EmailNotification();
-            $email->enviarEmail($destino, 'Pedido creado', "Pedido {$id} por $ {$total}");
+            $email = new EmailNotification($destino, 'Pedido creado');
+            $email->send("Pedido {$id} por $ {$total}");
         }
 
         if ($tipoNotificacion === 'sms') {
-            $sms = new SmsNotification();
-            $sms->mandarSms($destino, "Pedido {$id} por $ {$total}");
+            $sms = new SmsNotification($destino);
+            $sms->send("Pedido {$id} por $ {$total}");
         }
 
         // ---- 5. Avisos internos (deberia ser un Observer) ----

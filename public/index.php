@@ -23,6 +23,7 @@
 require_once __DIR__ . '/../src/Database/Connection.php';
 require_once __DIR__ . '/../src/Models/Order.php';
 require_once __DIR__ . '/../src/Pricing/PriceCalculator.php';
+require_once __DIR__ . '/../src/Notifications/Notification.php';
 require_once __DIR__ . '/../src/Notifications/EmailNotification.php';
 require_once __DIR__ . '/../src/Notifications/SmsNotification.php';
 require_once __DIR__ . '/../src/Notifications/NotificationSender.php';
