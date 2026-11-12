@@ -1,4 +1,5 @@
 <?php
+<<<<<<< Updated upstream
 /**
  * ============================================================================
  *  CALCULO DE PRECIOS
@@ -6,10 +7,13 @@
  * ============================================================================
  */
 
+=======
+>>>>>>> Stashed changes
 interface PricingStrategy
 {
     public function calculate(float $amount): float;
     }
+<<<<<<< Updated upstream
 
     final class PrivatePatientStrategy implements PricingStrategy
     {
@@ -28,9 +32,27 @@ interface PricingStrategy
     public function calculate(float $amount): float
     {
         return $amount * (1 - $this->discount);
+=======
+    final class PrivatePatientStrategy implements PricingStrategy
+    {
+        public function calculate(float $amount): float
+        {
+            return $amount;
+        }
     }
-}
 
+    final class InsuranceStrategy implements PricingStrategy
+    {
+        public function __construct(private float $discount = 0.30) {}
+    
+        public function calculate(float $amount): float
+        {
+            return $amount * (1 - $this->discount);
+        }
+>>>>>>> Stashed changes
+    }
+
+<<<<<<< Updated upstream
 final class RetireeStrategy implements PricingStrategy          // jubilado
 {
     public function calculate(float $amount): float
@@ -59,3 +81,5 @@ final class PriceCalculator
     }
 }
  
+=======
+>>>>>>> Stashed changes
