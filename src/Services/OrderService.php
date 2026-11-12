@@ -8,28 +8,27 @@ final class OrderService
 {
     public function __construct(
         private OrderValidator $validator,
-        private PriceCalculator $priceCalculator,
+        private OrderRepository $repository,
         private NotificationSender $notificationSender,
         private OrderEvents $events
     ) {
     }
 
-    /** @return array{order: Order, notification: string, events: list<string>} */
     public function procesarPedidoCompleto(
         Order $order,
         string $notificationType,
         string $destination
-    ): array {
+    ): void {
         $this->validator->validate($order);
-        $total = $this->priceCalculator->calculate($order->getPatientType(), $order->getAmount());
-        $savedOrder = $this->repository->save($order, $total);
-        $notification = $this->notificationSender->send($notificationType, $destination, $this->buildMessage($savedOrder));
-        $eventMessages = $this->events->pedidoCreado($savedOrder);
-        return ['order' => $savedOrder, 'notification' => $notification, 'events' => $eventMessages];
-    }
+        $total = PriceCalculator::forPatientType($order->getPatientType())
+            ->calculate($order->getAmount());
 
-    private function buildMessage(Order $order): string
-    {
-        return sprintf('Pedido #%d creado. Total: $ %.2f.', $order->getId(), $order->getTotal() ?? 0.0);
+        $this->repository->save($order);
+        $this->notificationSender->enviar(
+            $notificationType,
+            $destination,
+            sprintf('Pedido #%d creado. Total: $ %.2f.', $order->getId(), $total)
+        );
+        $this->events->pedidoCreado($order);
     }
 }
