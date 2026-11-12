@@ -11,7 +11,7 @@ final class EmailObserver implements OrderObserver
 
     public function update(Order $order): void
     {
-        $this->email->enviarEmail($this->destino, 'Pedido creado', "Pedido {$order->id}");
+        $this->email->send("Pedido {$order->id} creado para {$this->destino}");
     }
 }
 
@@ -21,39 +21,9 @@ final class SmsObserver implements OrderObserver
 
     public function update(Order $order): void
     {
-        $this->sms->mandarSms($this->numero, "Pedido {$order->id} creado");
+        $this->sms->send("Pedido {$order->id} creado para {$this->numero}");
     }
 }
 
-final class DashboardObserver implements OrderObserver
-{
-    public function update(Order $order): void
-    {
-        echo "[DASHBOARD] actualizado para el pedido {$order->id}<br>";
-    }
-}
-
-final class OrderEvents   // el sujeto: conoce la interfaz, no las clases concretas
-{
-    /** @var OrderObserver[] */
-    private array $observers = [];
-
-    public function subscribe(OrderObserver $observer): void
-    {
-        $this->observers[] = $observer;
-    }
-
-    public function pedidoCreado(Order $order): void
-    {
-        foreach ($this->observers as $observer) {
-            try {
-                $observer->update($order);
-            } catch (Throwable $e) {
-                // Un observador que falla no corta a los demás.
-                error_log('Observer ' . $observer::class . ' fallo: ' . $e->getMessage());
-            }
-        }
-    }
-}
  
  
