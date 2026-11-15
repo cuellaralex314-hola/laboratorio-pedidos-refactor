@@ -1,115 +1,65 @@
 <?php
-/**
- * ============================================================================
- *  MODELO Order
- * ============================================================================
- *
- *  ❌ DEUDA SEMBRADA
- *     1. Propiedades públicas mutables: cualquiera puede dejar el objeto invalido.
- *     2. El modelo se persiste a si mismo (guardar()): mezcla dominio y datos.
- *     3. El modelo calcula el precio segun el tipo de paciente: reglas de negocio
- *        que cambian por otro motivo, dentro de la misma clase.
- *
- *  ✅ FORMA CORRECTA
- *     1. Propiedades readonly y validacion en el constructor (encapsulamiento).
- *     2. La persistencia va a un OrderRepository (una responsabilidad, SRP).
- *     3. El calculo de precio sale a PricingStrategy (ver src/Pricing).
- * ============================================================================
- */
 
-class Order
+final class Order
 {
-    // ❌ MAL APLICADO: estado publico y mutable.
-    //    $order->amount = -50000;  es valido y rompe el sistema en silencio.
-    public int $id;
-    public string $patient;
-    public float $amount;
-    public string $patientType;
+    public function __construct(
+        private ?int $id,
+        private string $patient,
+        private float $amount,
+        private string $patientType,
+        private ?float $total = null
+    ) {
+        if ($id !== null && $id <= 0) {
+            throw new InvalidArgumentException('El identificador del pedido debe ser positivo.');
+        }
+        if (trim($patient) === '') {
+            throw new InvalidArgumentException('El nombre del paciente es obligatorio.');
+        }
+        if (!is_finite($amount) || $amount <= 0) {
+            throw new InvalidArgumentException('El importe debe ser un número mayor que cero.');
+        }
+        if (trim($patientType) === '') {
+            throw new InvalidArgumentException('Debés seleccionar un tipo de paciente.');
+        }
 
-    public function __construct(int $id, string $patient, float $amount, string $patientType)
-    {
-        // ❌ MAL APLICADO: sin ninguna validacion. El objeto puede nacer invalido.
-        $this->id          = $id;
-        $this->patient     = $patient;
-        $this->amount      = $amount;
-        $this->patientType = $patientType;
+        $this->patient = trim($patient);
+        $this->patientType = trim($patientType);
     }
 
-    /*
-     * ✅ FORMA CORRECTA:
-     *
-     * public function __construct(
-     *     public readonly int $id,
-     *     public readonly string $patient,
-     *     public readonly float $amount,
-     *     public readonly string $patientType
-     * ) {
-     *     if ($amount < 0) {
-     *         throw new InvalidArgumentException('El importe no puede ser negativo');
-     *     }
-     *     if (trim($patient) === '') {
-     *         throw new InvalidArgumentException('El paciente es obligatorio');
-     *     }
-     * }
-     */
-
-    /**
-     * ❌ METODO MAL APLICADO: guardar()
-     *    El modelo conoce SQL. Si cambia el motor de base de datos, cambia el modelo.
-     *    Dos motivos de cambio distintos viven en la misma clase (viola SRP).
-     *    Ademas el SQL se arma por concatenacion => inyeccion SQL.
-     */
-    public function guardar(): void
+    public static function fromArray(array $data): self
     {
-        $conexion = Connection::obtener();
-        $conexion->ejecutar(
-            "INSERT INTO orders (id, patient, amount) VALUES ({$this->id}, '{$this->patient}', {$this->amount})"
+        $idValue = $data['id'] ?? null;
+        $id = ($idValue === null || $idValue === '') ? null : (int) $idValue;
+
+        return new self(
+            $id,
+            (string) ($data['paciente'] ?? $data['patient'] ?? ''),
+            (float) ($data['monto'] ?? $data['amount'] ?? 0),
+            (string) ($data['tipo'] ?? $data['patient_type'] ?? 'particular'),
+            isset($data['total']) ? (float) $data['total'] : null
         );
     }
 
-    /*
-     * ✅ FORMA CORRECTA: sacar la persistencia del modelo.
-     *
-     * final class OrderRepository
-     * {
-     *     public function __construct(private PDO $pdo) {}
-     *
-     *     public function save(Order $order): void
-     *     {
-     *         $stmt = $this->pdo->prepare(
-     *             'INSERT INTO orders (id, patient, amount) VALUES (:id, :patient, :amount)'
-     *         );
-     *         $stmt->execute([
-     *             'id'      => $order->id,
-     *             'patient' => $order->patient,
-     *             'amount'  => $order->amount,
-     *         ]);
-     *     }
-     * }
-     */
+    public function getId(): ?int { return $this->id; }
+    public function getPatient(): string { return $this->patient; }
+    public function getAmount(): float { return $this->amount; }
+    public function getPatientType(): string { return $this->patientType; }
+    public function getTotal(): ?float { return $this->total; }
 
-    /**
-     * ❌ METODO MAL APLICADO: calcularTotal()
-     *    Cadena de if con las reglas de precio de TODOS los tipos de paciente.
-     *    Agregar "prepaga" obliga a modificar el modelo => viola Abierto/Cerrado.
-     */
-    public function calcularTotal(): float
+    /** Devuelve una entidad nueva con el identificador y el total persistidos. */
+    public function withPersistenceData(int $id, float $total): self
     {
-        if ($this->patientType === 'particular') {
-            return $this->amount;
-        }
-
-        if ($this->patientType === 'obra_social') {
-            return $this->amount * 0.7;
-        }
-
-        // ❌ Y aca alguien va a pegar el proximo if. Y el siguiente.
-        return $this->amount;
+        return new self($id, $this->patient, $this->amount, $this->patientType, $total);
     }
 
-    /*
-     * ✅ FORMA CORRECTA: delegar en una estrategia.
-     *
-     * $total = (new PriceCalculator(new InsuranceStrategy()))->calculate($order->amount);
-     */
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'paciente' => $this->patient,
+            'monto' => $this->amount,
+            'tipo' => $this->patientType,
+            'total' => $this->total ?? $this->amount,
+        ];
+    }
 }

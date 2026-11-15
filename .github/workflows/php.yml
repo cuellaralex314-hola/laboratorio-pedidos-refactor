@@ -1,0 +1,43 @@
+
+name: Validacion y pruebas PHP
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - "feat/**"
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  test:
+    name: Analisis y pruebas automatizadas
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar codigo
+        uses: actions/checkout@v4
+
+      - name: Preparar PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: pdo_mysql, pdo_sqlite, sqlite3
+          coverage: none
+
+      - name: Verificar version de PHP
+        run: php -v
+
+      - name: Revisar sintaxis PHP
+        shell: bash
+        run: |
+          find public src views tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Ejecutar pruebas PHPUnit
+        run: php tools/phpunit.phar --configuration phpunit.xml
+
+      - name: Ejecutar pruebas personalizadas
+        run: php tests/run.php

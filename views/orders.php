@@ -1,65 +1,45 @@
-<?php
-/**
- * ============================================================================
- *  VISTA: listado de pedidos
- * ============================================================================
- *
- *  ❌ DEUDA SEMBRADA
- *     1. La vista consulta la base de datos. Es el error mas comun al "aplicar MVC".
- *     2. La vista calcula totales (regla de negocio en la capa de presentacion).
- *     3. Los datos se imprimen sin escapar => XSS.
- *
- *  ✅ FORMA CORRECTA
- *     La vista recibe datos ya listos y SOLO los muestra, escapando la salida.
- *     Si una vista necesita consultar algo, el problema esta en el controlador.
- * ============================================================================
- */
-?>
-<h1>Pedidos</h1>
-
-<?php
-// ❌ MAL APLICADO: la vista abre la conexion por su cuenta. En el sistema real
-//    aca va un SELECT. La vista NO deberia saber que existe una base de datos.
-//    ✅ Los datos tienen que llegar desde el controlador: $pedidos ya resuelto.
-$conexion = Connection::obtener();
-$pedidos  = [
-    ['id' => 1, 'paciente' => 'Juan Perez',  'monto' => 15000, 'tipo' => 'obra_social'],
-    ['id' => 2, 'paciente' => 'Ana Gomez',   'monto' => 22000, 'tipo' => 'particular'],
-];
-?>
-
-<table border="1">
-    <tr><th>ID</th><th>Paciente</th><th>Total</th></tr>
-
-    <?php foreach ($pedidos as $pedido): ?>
-        <tr>
-            <td><?= $pedido['id'] ?></td>
-
-            <?php
-            // ❌ MAL APLICADO: salida sin escapar => XSS.
-            //    Si el paciente se llama  <script>alert(1)</script>  la vista lo ejecuta.
-            //    ✅ Correcto:  htmlspecialchars($pedido['paciente'], ENT_QUOTES, 'UTF-8')
-            ?>
-            <td><?= $pedido['paciente'] ?></td>
-
-            <?php
-            // ❌ MAL APLICADO: regla de negocio dentro de la vista.
-            //    ✅ El total tiene que llegar ya calculado desde el servicio.
-            ?>
-            <td><?= $pedido['tipo'] === 'obra_social' ? $pedido['monto'] * 0.7 : $pedido['monto'] ?></td>
-        </tr>
-    <?php endforeach; ?>
-</table>
-
-<?php
-/*
- * ----------------------------------------------------------------------------
- * EJERCICIO 8 (TP): dejar esta vista sin una sola linea de logica:
- * sin conexion, sin calculo y con toda la salida escapada.
- *
- * PREGUNTA PARA EL PR: si el descuento de obra social aparece en Order.php,
- * en PriceCalculator.php, en OrderService.php, en OrderController.php y aca,
- * cuantos lugares hay que tocar cuando el laboratorio lo cambie a 25%?
- * Ese numero es la medida exacta de la deuda tecnica del proyecto.
- * ----------------------------------------------------------------------------
- */
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pedidos | Laboratorio</title>
+    <style>
+        body{font-family:Arial,sans-serif;max-width:1050px;margin:32px auto;padding:0 18px;color:#202124}
+        nav{display:flex;gap:16px;margin-bottom:20px}.actions{display:flex;gap:12px;margin:20px 0}
+        table{width:100%;border-collapse:collapse}th,td{border:1px solid #bbb;padding:9px;text-align:left}th{background:#f2f4f7}
+        .notice{background:#eef6ee;padding:14px;border-left:4px solid #398445;margin:16px 0;overflow-wrap:anywhere}
+        .button{display:inline-block;padding:10px 14px;border-radius:5px;background:#174ea6;color:white;text-decoration:none}
+    </style>
+</head>
+<body>
+    <nav><a href="?accion=listar">Pedidos</a><a href="?accion=reporte">Reporte</a></nav>
+    <h1>Pedidos del laboratorio</h1>
+    <?php if (is_array($flash)): ?>
+        <section class="notice" role="status">
+            <strong><?= htmlspecialchars((string) ($flash['message'] ?? ''), ENT_QUOTES, 'UTF-8') ?></strong>
+            <?php if (!empty($flash['notification'])): ?><p><?= htmlspecialchars((string) $flash['notification'], ENT_QUOTES, 'UTF-8') ?></p><?php endif; ?>
+            <?php foreach (($flash['events'] ?? []) as $event): ?><p><?= htmlspecialchars((string) $event, ENT_QUOTES, 'UTF-8') ?></p><?php endforeach; ?>
+        </section>
+    <?php endif; ?>
+    <div class="actions"><a class="button" href="?accion=crear">Crear pedido</a><a class="button" href="?accion=reporte">Generar reporte</a></div>
+    <?php if ($pedidos === []): ?>
+        <p>Todavía no hay pedidos registrados. Creá el primero desde el botón de arriba.</p>
+    <?php else: ?>
+        <table>
+            <thead><tr><th>ID</th><th>Paciente</th><th>Importe base</th><th>Tipo</th><th>Total</th></tr></thead>
+            <tbody>
+            <?php foreach ($pedidos as $pedido): ?>
+                <tr>
+                    <td><?= htmlspecialchars((string) ($pedido['id'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars((string) ($pedido['paciente'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
+                    <td>$ <?= htmlspecialchars(number_format((float) ($pedido['monto'] ?? 0), 2, ',', '.'), ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars((string) ($pedido['tipo'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
+                    <td>$ <?= htmlspecialchars(number_format((float) ($pedido['total'] ?? 0), 2, ',', '.'), ENT_QUOTES, 'UTF-8') ?></td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    <?php endif; ?>
+</body>
+</html>
